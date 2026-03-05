@@ -1,10 +1,11 @@
 "use client";
 
+import { Suspense, useCallback, useMemo, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { fetchLendingPools } from "@/lib/api";
 import { REFETCH_INTERVAL } from "@/lib/constants";
 import { DefiLlamaPool } from "@/lib/types";
-import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,15 +17,40 @@ import {
 } from "@/components/ui/select";
 import { RatesTable } from "@/components/rates-table";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 
 type SortField = "apy" | "tvl";
 
-export default function Home() {
+const POOLS_PER_PAGE = 50;
+
+function formatTotalTvl(tvl: number): string {
+  if (tvl >= 1e12) return `$${(tvl / 1e12).toFixed(1)}T`;
+  if (tvl >= 1e9) return `$${(tvl / 1e9).toFixed(1)}B`;
+  if (tvl >= 1e6) return `$${(tvl / 1e6).toFixed(1)}M`;
+  return `$${tvl.toFixed(0)}`;
+}
+
+function relativeTime(timestamp: number): string {
+  const diff = Date.now() - timestamp;
+  const seconds = Math.floor(diff / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes === 1) return "1 min ago";
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours === 1) return "1 hour ago";
+  return `${hours} hours ago`;
+}
+
+function RateExplorerContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   const {
     data: pools = [],
     isLoading,
     error,
+    dataUpdatedAt,
   } = useQuery({
     queryKey: ["lending-pools"],
     queryFn: fetchLendingPools,
@@ -32,10 +58,88 @@ export default function Home() {
     staleTime: REFETCH_INTERVAL,
   });
 
-  const [assetFilter, setAssetFilter] = useState("");
-  const [chainFilter, setChainFilter] = useState("all");
-  const [protocolFilter, setProtocolFilter] = useState("all");
-  const [sortBy, setSortBy] = useState<SortField>("apy");
+  // Initialize state from URL params
+  const [assetFilter, setAssetFilterState] = useState(
+    searchParams.get("asset") ?? ""
+  );
+  const [chainFilter, setChainFilterState] = useState(
+    searchParams.get("chain") ?? "all"
+  );
+  const [protocolFilter, setProtocolFilterState] = useState(
+    searchParams.get("protocol") ?? "all"
+  );
+  const [sortBy, setSortByState] = useState<SortField>(
+    (searchParams.get("sort") as SortField) ?? "apy"
+  );
+  const [page, setPage] = useState(
+    Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1)
+  );
+
+  // Helper to update URL params
+  const updateParams = useCallback(
+    (updates: Record<string, string>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      for (const [key, value] of Object.entries(updates)) {
+        if (
+          value === "" ||
+          value === "all" ||
+          (key === "sort" && value === "apy") ||
+          (key === "page" && value === "1")
+        ) {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      }
+      const qs = params.toString();
+      router.replace(qs ? `/?${qs}` : "/", { scroll: false });
+    },
+    [searchParams, router]
+  );
+
+  const setAssetFilter = useCallback(
+    (value: string) => {
+      setAssetFilterState(value);
+      setPage(1);
+      updateParams({ asset: value, page: "1" });
+    },
+    [updateParams]
+  );
+
+  const setChainFilter = useCallback(
+    (value: string) => {
+      setChainFilterState(value);
+      setPage(1);
+      updateParams({ chain: value, page: "1" });
+    },
+    [updateParams]
+  );
+
+  const setProtocolFilter = useCallback(
+    (value: string) => {
+      setProtocolFilterState(value);
+      setPage(1);
+      updateParams({ protocol: value, page: "1" });
+    },
+    [updateParams]
+  );
+
+  const setSortBy = useCallback(
+    (value: SortField) => {
+      setSortByState(value);
+      setPage(1);
+      updateParams({ sort: value, page: "1" });
+    },
+    [updateParams]
+  );
+
+  const setPageWithUrl = useCallback(
+    (p: number) => {
+      setPage(p);
+      updateParams({ page: String(p) });
+    },
+    [updateParams]
+  );
 
   // Unique chains and protocols from data
   const chains = useMemo(
@@ -47,9 +151,15 @@ export default function Home() {
     [pools]
   );
 
-  // Filter and sort
+  // Total TVL across all pools
+  const totalTvl = useMemo(
+    () => pools.reduce((sum, p) => sum + p.tvlUsd, 0),
+    [pools]
+  );
+
+  // Filter and sort (no slice -- we paginate separately)
   const filtered = useMemo(() => {
-    let result = pools.filter((p: DefiLlamaPool) => {
+    const result = pools.filter((p: DefiLlamaPool) => {
       const matchAsset =
         !assetFilter ||
         p.symbol.toLowerCase().includes(assetFilter.toLowerCase());
@@ -63,8 +173,15 @@ export default function Home() {
       sortBy === "apy" ? b.apy - a.apy : b.tvlUsd - a.tvlUsd
     );
 
-    return result.slice(0, 150);
+    return result;
   }, [pools, assetFilter, chainFilter, protocolFilter, sortBy]);
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filtered.length / POOLS_PER_PAGE));
+  const safePage = Math.min(page, totalPages);
+  const startIdx = (safePage - 1) * POOLS_PER_PAGE;
+  const endIdx = Math.min(startIdx + POOLS_PER_PAGE, filtered.length);
+  const paginatedPools = filtered.slice(startIdx, endIdx);
 
   // Best rate per asset symbol
   const bestRates = useMemo(() => {
@@ -92,23 +209,23 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+        {/* Subtitle */}
         <div className="mb-5">
           <p className="text-base text-zinc-400">
-            Real-time best DeFi lending rates across all chains. Auto-refreshes every 5 minutes.
+            Real-time best DeFi lending rates across all chains. Auto-refreshes
+            every 5 minutes.
           </p>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-wrap gap-3 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           <Input
             placeholder="Filter asset (USDC, ETH, WBTC...)"
             value={assetFilter}
             onChange={(e) => setAssetFilter(e.target.value)}
-            className="w-64"
           />
           <Select value={chainFilter} onValueChange={setChainFilter}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger>
               <SelectValue placeholder="All Chains" />
             </SelectTrigger>
             <SelectContent>
@@ -121,7 +238,7 @@ export default function Home() {
             </SelectContent>
           </Select>
           <Select value={protocolFilter} onValueChange={setProtocolFilter}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger>
               <SelectValue placeholder="All Protocols" />
             </SelectTrigger>
             <SelectContent>
@@ -137,7 +254,7 @@ export default function Home() {
             value={sortBy}
             onValueChange={(v) => setSortBy(v as SortField)}
           >
-            <SelectTrigger className="w-44">
+            <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -149,10 +266,14 @@ export default function Home() {
 
         {/* Stats bar */}
         {!isLoading && !error && (
-          <div className="flex gap-6 mb-4 text-sm text-muted-foreground">
-            <span>{filtered.length} pools shown</span>
-            <span>{chains.length} chains</span>
+          <div className="flex flex-wrap gap-x-6 gap-y-1 mb-4 text-sm text-muted-foreground">
             <span>{protocols.length} protocols</span>
+            <span>{chains.length} chains</span>
+            <span>TVL {formatTotalTvl(totalTvl)}</span>
+            <span>{filtered.length} pools</span>
+            {dataUpdatedAt > 0 && (
+              <span>Updated {relativeTime(dataUpdatedAt)}</span>
+            )}
           </div>
         )}
 
@@ -166,14 +287,73 @@ export default function Home() {
           ) : isLoading ? (
             <LoadingSkeleton />
           ) : (
-            <RatesTable pools={filtered} bestRates={bestRates} />
+            <RatesTable
+              pools={paginatedPools}
+              bestRates={bestRates}
+              staggerAnimation
+              pageOffset={startIdx}
+            />
           )}
         </Card>
+
+        {/* Pagination */}
+        {!isLoading && !error && filtered.length > POOLS_PER_PAGE && (
+          <div className="flex items-center justify-between mt-4">
+            <span className="text-sm text-muted-foreground">
+              Showing {startIdx + 1}-{endIdx} of {filtered.length} pools
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPageWithUrl(safePage - 1)}
+                disabled={safePage <= 1}
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded-md bg-zinc-800 text-zinc-200 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Prev
+              </button>
+              <span className="text-sm text-muted-foreground px-2">
+                Page {safePage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setPageWithUrl(safePage + 1)}
+                disabled={safePage >= totalPages}
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded-md bg-zinc-800 text-zinc-200 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
 
         <p className="text-center text-muted-foreground text-xs mt-6">
           Rates are supply APY. Not financial advice.
         </p>
       </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background text-foreground">
+          <div className="max-w-7xl mx-auto">
+            <div className="mb-5">
+              <p className="text-base text-zinc-400">
+                Real-time best DeFi lending rates across all chains.
+                Auto-refreshes every 5 minutes.
+              </p>
+            </div>
+            <Card>
+              <LoadingSkeleton />
+            </Card>
+          </div>
+        </div>
+      }
+    >
+      <RateExplorerContent />
+    </Suspense>
   );
 }

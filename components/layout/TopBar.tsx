@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { Bell, Search, Command } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { GlobalSearch } from "@/components/layout/GlobalSearch";
 
 const routeLabels: Record<string, string> = {
   "/": "Rate Explorer",
@@ -66,7 +67,7 @@ export function TopBar() {
       {/* Right section */}
       <div className="flex items-center gap-3">
         {/* Search trigger */}
-        <button className="flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-500 transition-colors duration-150 hover:border-zinc-700 hover:text-zinc-400">
+        <button onClick={() => window.dispatchEvent(new Event("open-search"))} className="flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-500 transition-colors duration-150 hover:border-zinc-700 hover:text-zinc-400">
           <Search className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">Search...</span>
           <kbd className="hidden rounded border border-zinc-700 bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500 sm:inline-block">
@@ -89,6 +90,7 @@ export function TopBar() {
           <span className="font-mono text-xs text-zinc-500">Not connected</span>
         </div>
       </div>
+      <GlobalSearch />
     </header>
   );
 }

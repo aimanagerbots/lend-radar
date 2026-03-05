@@ -4,6 +4,7 @@ import { DefiLlamaPool } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
+import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -16,7 +17,22 @@ import {
 interface RatesTableProps {
   pools: DefiLlamaPool[];
   bestRates: Map<string, string>; // symbol -> pool id of best rate
+  staggerAnimation?: boolean;
+  pageOffset?: number;
 }
+
+const CHAIN_COLORS: Record<string, string> = {
+  Ethereum: "#627eea",
+  Arbitrum: "#28a0f0",
+  Base: "#0052ff",
+  Optimism: "#ff0420",
+  Polygon: "#8247e5",
+  BSC: "#f0b90b",
+  Solana: "#9945ff",
+  Avalanche: "#e84142",
+};
+
+const DEFAULT_CHAIN_COLOR = "#71717a";
 
 function formatTvl(tvl: number): string {
   if (tvl >= 1e9) return `$${(tvl / 1e9).toFixed(2)}B`;
@@ -26,11 +42,18 @@ function formatTvl(tvl: number): string {
 }
 
 function formatApy(apy: number | null): string {
-  if (apy == null) return "—";
+  if (apy == null) return "\u2014";
   return `${apy.toFixed(2)}%`;
 }
 
-export function RatesTable({ pools, bestRates }: RatesTableProps) {
+function getApyColorClass(apy: number | null): string {
+  if (apy == null) return "text-zinc-400";
+  if (apy > 5) return "text-emerald-400";
+  if (apy >= 1) return "text-green-400";
+  return "text-zinc-400";
+}
+
+export function RatesTable({ pools, bestRates, staggerAnimation = true, pageOffset = 0 }: RatesTableProps) {
   if (pools.length === 0) {
     return (
       <div className="text-center py-20 text-muted-foreground">
@@ -48,34 +71,53 @@ export function RatesTable({ pools, bestRates }: RatesTableProps) {
           <TableHead>Protocol</TableHead>
           <TableHead className="text-right">Total APY</TableHead>
           <TableHead className="text-right">Base APY</TableHead>
+          <TableHead className="text-right">Reward APY</TableHead>
           <TableHead className="text-right">TVL</TableHead>
           <TableHead className="text-right">Action</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {pools.map((pool) => {
+        {pools.map((pool, index) => {
           const isBest = bestRates.get(pool.symbol) === pool.pool;
+          const chainColor = CHAIN_COLORS[pool.chain] || DEFAULT_CHAIN_COLOR;
+
           return (
             <TableRow
               key={pool.pool}
-              className={isBest ? "bg-green-950/20" : ""}
+              className={`${staggerAnimation ? "animate-fade-in-up" : ""} ${isBest ? "bg-emerald-950/20" : ""}`}
+              style={staggerAnimation ? { animationDelay: `${index * 30}ms` } : undefined}
             >
               <TableCell className="font-medium">
-                {pool.symbol}
+                <Link
+                  href={`/asset/${encodeURIComponent(pool.symbol)}`}
+                  className="hover:text-emerald-400 transition-colors"
+                >
+                  {pool.symbol}
+                </Link>
                 {pool.poolMeta && (
                   <span className="text-xs text-muted-foreground ml-1">
                     ({pool.poolMeta})
                   </span>
                 )}
               </TableCell>
-              <TableCell>{pool.chain}</TableCell>
+              <TableCell>
+                <span className="inline-flex items-center gap-1.5">
+                  <span
+                    className="inline-block h-2 w-2 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: chainColor }}
+                  />
+                  {pool.chain}
+                </span>
+              </TableCell>
               <TableCell>{pool.project}</TableCell>
               <TableCell className="text-right font-mono">
-                <span className="text-green-400">{formatApy(pool.apy)}</span>
+                <span className={getApyColorClass(pool.apy)}>
+                  {formatApy(pool.apy)}
+                </span>
                 {isBest && (
                   <Badge
                     variant="default"
-                    className="ml-2 bg-green-600 text-white text-[10px] px-1.5 py-0"
+                    className="ml-2 bg-emerald-600 text-white text-[10px] px-1.5 py-0 animate-emerald-pulse"
                   >
                     BEST
                   </Badge>
@@ -83,6 +125,15 @@ export function RatesTable({ pools, bestRates }: RatesTableProps) {
               </TableCell>
               <TableCell className="text-right font-mono text-muted-foreground">
                 {formatApy(pool.apyBase)}
+              </TableCell>
+              <TableCell className="text-right font-mono">
+                {pool.apyReward != null ? (
+                  <span className="text-xs text-muted-foreground">
+                    {formatApy(pool.apyReward)}
+                  </span>
+                ) : (
+                  <span className="text-xs text-muted-foreground">{"\u2014"}</span>
+                )}
               </TableCell>
               <TableCell className="text-right font-mono">
                 {formatTvl(pool.tvlUsd)}
@@ -99,7 +150,7 @@ export function RatesTable({ pools, bestRates }: RatesTableProps) {
                     </a>
                   </Button>
                 ) : (
-                  <span className="text-xs text-muted-foreground">—</span>
+                  <span className="text-xs text-muted-foreground">{"\u2014"}</span>
                 )}
               </TableCell>
             </TableRow>
