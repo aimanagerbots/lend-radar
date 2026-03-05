@@ -2,7 +2,7 @@
 
 import { mockTransactions } from "@/lib/mock/transactions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Download, Receipt, Fuel, ArrowLeftRight } from "lucide-react";
 
 const typeBadge: Record<string, { label: string; color: string }> = {
   deposit: {
@@ -46,17 +46,77 @@ function formatDate(iso: string): string {
 }
 
 export default function TransactionsPage() {
+  const totalTransactions = mockTransactions.length;
+  const totalGasSpent = mockTransactions.reduce((sum, tx) => sum + tx.gasCost, 0);
+  const totalBridgeFees = mockTransactions.reduce((sum, tx) => sum + tx.bridgeCost, 0);
+
+  const summaryStats = [
+    {
+      label: "Total Transactions",
+      value: totalTransactions.toString(),
+      icon: Receipt,
+    },
+    {
+      label: "Total Gas Spent",
+      value: `$${totalGasSpent.toFixed(2)}`,
+      icon: Fuel,
+    },
+    {
+      label: "Total Bridge Fees",
+      value: `$${totalBridgeFees.toFixed(2)}`,
+      icon: ArrowLeftRight,
+    },
+  ];
+
+  function handleExportCSV() {
+    alert("CSV export coming soon! This feature is under development.");
+  }
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
       <div className="mx-auto max-w-6xl px-4 py-8">
         {/* Header */}
-        <div className="animate-fade-in-up mb-8">
-          <h1 className="font-mono text-2xl font-bold tracking-tight text-zinc-100">
-            Transactions
-          </h1>
-          <p className="mt-1 text-sm text-zinc-500">
-            History of deposits, withdrawals, and rebalances across your DeFi positions.
-          </p>
+        <div className="animate-fade-in-up mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="font-mono text-2xl font-bold tracking-tight text-zinc-100">
+              Transactions
+            </h1>
+            <p className="mt-1 text-sm text-zinc-500">
+              History of deposits, withdrawals, and rebalances across your DeFi positions.
+            </p>
+          </div>
+          <button
+            onClick={handleExportCSV}
+            className="inline-flex items-center gap-2 rounded-lg bg-zinc-800 px-4 py-2 font-mono text-xs font-medium text-zinc-300 ring-1 ring-zinc-700 transition-colors hover:bg-zinc-700 hover:text-zinc-100"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Export CSV
+          </button>
+        </div>
+
+        {/* Summary Cards */}
+        <div className="animate-fade-in-up mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {summaryStats.map((stat, i) => {
+            const Icon = stat.icon;
+            return (
+              <Card
+                key={stat.label}
+                className={`border-zinc-800 bg-zinc-900 p-5 delay-${i + 1}`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-800/80 ring-1 ring-zinc-700/50">
+                    <Icon className="h-4 w-4 text-zinc-400" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+                      {stat.label}
+                    </p>
+                    <p className="font-mono text-lg font-bold text-zinc-100">{stat.value}</p>
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Table Card */}

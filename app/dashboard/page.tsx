@@ -5,6 +5,7 @@ import { AllocationPieChart } from "@/components/charts/AllocationPieChart";
 import { RiskBadge } from "@/components/shared/RiskBadge";
 import { ChainBadge } from "@/components/shared/ChainBadge";
 import { Card } from "@/components/ui/card";
+import { Wallet } from "lucide-react";
 
 const ALLOCATION_COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ef4444"];
 
@@ -47,6 +48,23 @@ export default function DashboardPage() {
             Wallet: <span className="font-mono text-zinc-400">{mockPortfolio.walletAddress}</span>
           </p>
         </div>
+
+        {/* Wallet Not Connected Hero */}
+        <Card className="animate-fade-in-up mb-8 border-zinc-800 bg-zinc-900 p-6">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 ring-1 ring-amber-500/20">
+              <Wallet className="h-6 w-6 text-amber-400" />
+            </div>
+            <div>
+              <h2 className="font-mono text-sm font-semibold text-zinc-100">
+                Connect your wallet to scan your DeFi lending positions across all chains
+              </h2>
+              <p className="mt-1 text-xs text-zinc-500">
+                (Showing demo data below)
+              </p>
+            </div>
+          </div>
+        </Card>
 
         {/* Stats Row */}
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
