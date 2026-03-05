@@ -4,7 +4,6 @@ import { mockTreasury } from "@/lib/mock/treasury";
 import { Card } from "@/components/ui/card";
 import { RiskBadge } from "@/components/shared/RiskBadge";
 import { ChainBadge } from "@/components/shared/ChainBadge";
-import { ProGate } from "@/components/shared/ProGate";
 
 export default function TreasuryPage() {
   const {
@@ -38,7 +37,6 @@ export default function TreasuryPage() {
   ];
 
   return (
-    <ProGate tier="institutional">
     <div className="min-h-screen bg-zinc-950 px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
@@ -229,6 +227,5 @@ export default function TreasuryPage() {
         </div>
       </div>
     </div>
-    </ProGate>
   );
 }

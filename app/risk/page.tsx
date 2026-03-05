@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RiskBadge } from "@/components/shared/RiskBadge";
 import { RiskRadarChart } from "@/components/charts/RiskRadarChart";
 import { ProGate } from "@/components/shared/ProGate";
-import { Shield, CheckCircle, XCircle } from "lucide-react";
+import { Shield, CheckCircle, XCircle, Crown } from "lucide-react";
+import Link from "next/link";
 
 function formatTVL(tvl: number): string {
   if (tvl >= 1e9) return `$${(tvl / 1e9).toFixed(1)}B`;
@@ -23,13 +24,22 @@ export default function RiskPage() {
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
       <div className="mx-auto max-w-7xl px-4 py-8">
         {/* Header */}
-        <div className="animate-fade-in-up mb-8">
-          <h1 className="font-mono text-2xl font-bold tracking-tight text-zinc-100">
-            Risk Analytics
-          </h1>
-          <p className="mt-1 text-sm text-zinc-500">
-            Compare protocol risk scores, audit status, and security factors across all tracked protocols.
-          </p>
+        <div className="animate-fade-in-up mb-8 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="font-mono text-2xl font-bold tracking-tight text-zinc-100">
+              Risk Analytics
+            </h1>
+            <p className="mt-1 text-sm text-zinc-500">
+              Compare protocol risk scores, audit status, and security factors across all tracked protocols.
+            </p>
+          </div>
+          <Link
+            href="/pricing"
+            className="flex shrink-0 items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 font-mono text-sm font-semibold text-white transition-colors hover:bg-emerald-500"
+          >
+            <Crown className="h-4 w-4" />
+            View Plans
+          </Link>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">

@@ -10,12 +10,6 @@ import { fetchLendingPools } from "@/lib/api";
 import { REFETCH_INTERVAL } from "@/lib/constants";
 import { Card } from "@/components/ui/card";
 
-function toTitleCase(str: string): string {
-  return str
-    .replace(/-/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
 function formatTVL(value: number): string {
   if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)}B`;
   if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
@@ -27,6 +21,10 @@ function formatAmount(value: number): string {
   if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(2)}M`;
   if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
   return `$${value.toLocaleString()}`;
+}
+
+function normalize(s: string): string {
+  return decodeURIComponent(s).toLowerCase().replace(/[\s-]+/g, "-");
 }
 
 const factorLabels: Record<string, string> = {
@@ -44,11 +42,12 @@ export default function ProtocolProfilePage({
   params: Promise<{ name: string }>;
 }) {
   const { name } = use(params);
-  const displayName = toTitleCase(name);
+  const decodedName = decodeURIComponent(name);
 
   const protocol = useMemo(() => {
+    const norm = normalize(name);
     return mockRiskScores.protocols.find(
-      (p) => p.name.toLowerCase().replace(/\s+/g, "-") === name.toLowerCase()
+      (p) => normalize(p.name) === norm
     );
   }, [name]);
 
@@ -69,10 +68,9 @@ export default function ProtocolProfilePage({
 
   const protocolPools = useMemo(() => {
     if (!pools) return [];
+    const norm = normalize(name);
     return pools.filter(
-      (p) =>
-        p.project.toLowerCase().replace(/\s+/g, "-") === name.toLowerCase() ||
-        p.project.toLowerCase() === name.toLowerCase()
+      (p) => normalize(p.project) === norm
     );
   }, [pools, name]);
 
@@ -84,7 +82,7 @@ export default function ProtocolProfilePage({
             Protocol Not Found
           </h1>
           <p className="text-zinc-400">
-            No risk data available for &quot;{displayName}&quot;.
+            No risk data available for &quot;{decodedName}&quot;.
           </p>
         </div>
       </div>
@@ -192,7 +190,7 @@ export default function ProtocolProfilePage({
             {summaryStats.map((stat, i) => (
               <div
                 key={stat.label}
-                className={`animate-fade-in-up`}
+                className="animate-fade-in-up"
                 style={{ animationDelay: `${150 + i * 75}ms` }}
               >
                 <Card className="bg-zinc-900 border-zinc-800 p-4 h-full">
