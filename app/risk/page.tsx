@@ -5,6 +5,7 @@ import { mockRiskScores } from "@/lib/mock/risk-scores";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RiskBadge } from "@/components/shared/RiskBadge";
 import { RiskRadarChart } from "@/components/charts/RiskRadarChart";
+import { ProGate } from "@/components/shared/ProGate";
 import { Shield, CheckCircle, XCircle } from "lucide-react";
 
 function formatTVL(tvl: number): string {
@@ -200,6 +201,17 @@ export default function RiskPage() {
               </CardContent>
             </Card>
           </div>
+        </div>
+        {/* Pro Gate overlay */}
+        <div className="mt-8">
+          <ProGate tier="pro">
+            <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-8 text-center">
+              <p className="text-sm text-zinc-400">
+                Upgrade to Pro for full risk analytics including custom risk
+                scoring, historical risk trends, and protocol comparison tools.
+              </p>
+            </div>
+          </ProGate>
         </div>
       </div>
     </div>

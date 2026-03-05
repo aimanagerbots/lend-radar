@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { Bell, Search, Command } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GlobalSearch } from "@/components/layout/GlobalSearch";
+import { ConnectWallet } from "@/components/layout/ConnectWallet";
 
 const routeLabels: Record<string, string> = {
   "/": "Rate Explorer",
@@ -84,10 +85,9 @@ export function TopBar() {
           </span>
         </button>
 
-        {/* Wallet status (placeholder - will be replaced by RainbowKit) */}
-        <div className="hidden items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 sm:flex">
-          <div className="h-2 w-2 rounded-full bg-zinc-600" />
-          <span className="font-mono text-xs text-zinc-500">Not connected</span>
+        {/* Wallet connection */}
+        <div className="hidden sm:block">
+          <ConnectWallet />
         </div>
       </div>
       <GlobalSearch />

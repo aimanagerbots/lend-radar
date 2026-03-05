@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/lib/sidebar-context";
+import { ConnectWallet } from "@/components/layout/ConnectWallet";
 import {
   Tooltip,
   TooltipContent,
@@ -26,7 +27,6 @@ import {
   Code2,
   Settings,
   Moon,
-  Wallet,
   ChevronLeft,
   ChevronRight,
   Zap,
@@ -277,15 +277,7 @@ export function Sidebar() {
           {showLabels && <span>Dark Mode</span>}
         </button>
         <div className="mx-2 mt-2">
-          <button
-            className={cn(
-              "flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-500/10 py-2 text-[13px] font-semibold text-emerald-400 ring-1 ring-emerald-500/20 transition-all duration-150 hover:bg-emerald-500/15 hover:ring-emerald-500/30",
-              collapsed && !mobileOpen ? "px-2" : "px-3"
-            )}
-          >
-            <Wallet className="h-[18px] w-[18px] shrink-0" />
-            {showLabels && <span>Connect Wallet</span>}
-          </button>
+          <ConnectWallet collapsed={collapsed && !mobileOpen} />
         </div>
 
         {/* Collapse toggle - desktop only */}

@@ -1,7 +1,23 @@
 "use client";
 
+import { useState } from "react";
 import { mockAlerts } from "@/lib/mock/alerts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   TrendingDown,
   TrendingUp,
@@ -50,6 +66,8 @@ function formatDate(iso: string | null): string {
 }
 
 export default function AlertsPage() {
+  const [dialogOpen, setDialogOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
       <div className="mx-auto max-w-5xl px-4 py-8">
@@ -63,10 +81,91 @@ export default function AlertsPage() {
               Configure notifications for rate changes, TVL drops, and new opportunities.
             </p>
           </div>
-          <button className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 font-mono text-sm font-medium text-emerald-400 transition-colors hover:bg-emerald-500/20">
-            <Plus className="h-4 w-4" />
-            Create Alert
-          </button>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <button className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 font-mono text-sm font-medium text-emerald-400 transition-colors hover:bg-emerald-500/20">
+                <Plus className="h-4 w-4" />
+                Create Alert
+              </button>
+            </DialogTrigger>
+            <DialogContent className="border-zinc-800 bg-zinc-900 text-zinc-100 sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="font-mono text-zinc-100">Create Alert</DialogTitle>
+              </DialogHeader>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  setDialogOpen(false);
+                }}
+                className="space-y-4 pt-2"
+              >
+                {/* Alert Type */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-zinc-400">Alert Type</label>
+                  <Select defaultValue="rate_drop">
+                    <SelectTrigger className="w-full border-zinc-700 bg-zinc-800 text-zinc-200">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent className="border-zinc-700 bg-zinc-800 text-zinc-200">
+                      <SelectItem value="rate_drop">Rate Drop</SelectItem>
+                      <SelectItem value="rate_spike">Rate Spike</SelectItem>
+                      <SelectItem value="tvl_drop">TVL Drop</SelectItem>
+                      <SelectItem value="new_opportunity">New Opportunity</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Asset */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-zinc-400">Asset (optional)</label>
+                  <Input
+                    placeholder="e.g. USDC, ETH"
+                    className="border-zinc-700 bg-zinc-800 text-zinc-200 placeholder:text-zinc-600"
+                  />
+                </div>
+
+                {/* Protocol */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-zinc-400">Protocol (optional)</label>
+                  <Input
+                    placeholder="e.g. Aave, Compound"
+                    className="border-zinc-700 bg-zinc-800 text-zinc-200 placeholder:text-zinc-600"
+                  />
+                </div>
+
+                {/* Condition Threshold */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-zinc-400">Condition Threshold</label>
+                  <Input
+                    placeholder="e.g. APY drops below 3%"
+                    className="border-zinc-700 bg-zinc-800 text-zinc-200 placeholder:text-zinc-600"
+                  />
+                </div>
+
+                {/* Channel */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-zinc-400">Notification Channel</label>
+                  <Select defaultValue="email">
+                    <SelectTrigger className="w-full border-zinc-700 bg-zinc-800 text-zinc-200">
+                      <SelectValue placeholder="Select channel" />
+                    </SelectTrigger>
+                    <SelectContent className="border-zinc-700 bg-zinc-800 text-zinc-200">
+                      <SelectItem value="email">Email</SelectItem>
+                      <SelectItem value="telegram">Telegram</SelectItem>
+                      <SelectItem value="webhook">Webhook</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full rounded-lg bg-emerald-500/15 px-4 py-2.5 font-mono text-sm font-semibold text-emerald-400 ring-1 ring-emerald-500/25 transition-colors hover:bg-emerald-500/25"
+                >
+                  Create Alert
+                </button>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Alert Cards */}

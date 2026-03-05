@@ -10,6 +10,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { APYHistoryChart } from "@/components/charts/APYHistoryChart";
 import { TimeRangeSelector } from "@/components/shared/TimeRangeSelector";
+import { ProGate } from "@/components/shared/ProGate";
 import { BarChart3 } from "lucide-react";
 
 export default function AnalyticsPage() {
@@ -88,19 +89,37 @@ export default function AnalyticsPage() {
 
         {/* Chart */}
         <div className="animate-fade-in-up delay-2 mb-6">
-          <Card className="border-zinc-800 bg-zinc-900">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-emerald-400" />
-                <CardTitle className="font-mono text-sm text-zinc-300">
-                  {selectedAsset} APY History
-                </CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <APYHistoryChart protocols={chartData} height={400} />
-            </CardContent>
-          </Card>
+          {timeRange !== "7d" ? (
+            <ProGate tier="pro">
+              <Card className="border-zinc-800 bg-zinc-900">
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4 text-emerald-400" />
+                    <CardTitle className="font-mono text-sm text-zinc-300">
+                      {selectedAsset} APY History
+                    </CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <APYHistoryChart protocols={chartData} height={400} />
+                </CardContent>
+              </Card>
+            </ProGate>
+          ) : (
+            <Card className="border-zinc-800 bg-zinc-900">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-emerald-400" />
+                  <CardTitle className="font-mono text-sm text-zinc-300">
+                    {selectedAsset} APY History
+                  </CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <APYHistoryChart protocols={chartData} height={400} />
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Summary Stats Table */}
