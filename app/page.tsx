@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { RatesTable } from "@/components/rates-table";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
-import { TrendingUp, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 
 type SortField = "apy" | "tvl";
 
@@ -90,16 +90,12 @@ export default function Home() {
   }, [pools, chainFilter, protocolFilter]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-4 md:p-8">
+    <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold flex items-center gap-3">
-            LendRadar <TrendingUp className="text-green-500 h-8 w-8" />
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Real-time best DeFi lending rates across all chains &bull; Data from
-            DefiLlama &bull; Auto-refreshes every 5 min
+        <div className="mb-5">
+          <p className="text-base text-zinc-400">
+            Real-time best DeFi lending rates across all chains. Auto-refreshes every 5 minutes.
           </p>
         </div>
 
@@ -175,8 +171,7 @@ export default function Home() {
         </Card>
 
         <p className="text-center text-muted-foreground text-xs mt-6">
-          Data sourced from DefiLlama Yields API &bull; Rates are supply APY
-          &bull; Not financial advice
+          Rates are supply APY. Not financial advice.
         </p>
       </div>
     </div>

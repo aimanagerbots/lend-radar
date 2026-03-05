@@ -42,10 +42,10 @@ export function TopBar() {
   const crumbs = getPageLabel(pathname);
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-zinc-800 bg-zinc-950/80 px-6 backdrop-blur-sm">
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-zinc-800 bg-zinc-950/80 px-3 pl-14 backdrop-blur-sm md:px-6 md:pl-6">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-sm">
-        <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+        <span className="hidden font-mono text-[10px] font-semibold uppercase tracking-wider text-zinc-500 md:inline">
           LendRadar
         </span>
         {crumbs.map((crumb, i) => (
@@ -84,7 +84,7 @@ export function TopBar() {
         </button>
 
         {/* Wallet status (placeholder - will be replaced by RainbowKit) */}
-        <div className="flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5">
+        <div className="hidden items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 sm:flex">
           <div className="h-2 w-2 rounded-full bg-zinc-600" />
           <span className="font-mono text-xs text-zinc-500">Not connected</span>
         </div>

@@ -10,11 +10,12 @@ export function MainContent({ children }: { children: React.ReactNode }) {
     <div
       className={cn(
         "flex flex-1 flex-col transition-[padding-left] duration-200 ease-out",
-        collapsed ? "pl-[64px]" : "pl-[240px]"
+        "pl-0 md:pl-[240px]",
+        collapsed && "md:pl-[64px]"
       )}
     >
       <TopBar />
-      <main className="flex-1 p-6">{children}</main>
+      <main className="flex-1 overflow-x-hidden p-4 md:p-6">{children}</main>
     </div>
   );
 }

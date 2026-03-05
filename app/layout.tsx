@@ -33,7 +33,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${plusJakarta.variable} ${jetbrainsMono.variable} bg-zinc-950 font-sans text-zinc-100 antialiased`}
+        className={`${plusJakarta.variable} ${jetbrainsMono.variable} overflow-x-hidden bg-zinc-950 font-sans text-zinc-100 antialiased`}
       >
         <Providers>
           <TooltipProvider delayDuration={0}>
