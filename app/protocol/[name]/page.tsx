@@ -183,7 +183,7 @@ export default function ProtocolProfilePage({
               <h2 className="mb-4 text-lg font-semibold text-zinc-100">
                 Risk Factor Analysis
               </h2>
-              <RiskRadarChart data={radarData} height={320} />
+              <RiskRadarChart factors={protocol.factors} label={protocol.name} height={320} />
             </Card>
           </div>
 
